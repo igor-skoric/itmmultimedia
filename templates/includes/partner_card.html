@@ -1,0 +1,25 @@
+{% load website_tags %}
+<article class="partner-card{% if featured %} is-feature{% endif %} reveal">
+  <a href="{{ partner.url }}" target="_blank" rel="noopener noreferrer">
+    {% if partner.image_url %}
+      <div class="partner-media">
+        <img src="{{ partner.image_url }}" alt="{{ partner.name }}" loading="lazy" />
+        {% if partner.logo_url %}
+          <span class="partner-logo">
+            <img src="{{ partner.logo_url }}" alt="" />
+          </span>
+        {% endif %}
+      </div>
+    {% endif %}
+    <div class="partner-copy">
+      {% if partner.logo_url and not partner.image_url %}
+        <span class="partner-logo is-inline">
+          <img src="{{ partner.logo_url }}" alt="" />
+        </span>
+      {% endif %}
+      <h3>{{ partner.name }}</h3>
+      <p>{% loc partner "description" lang %}</p>
+      <span class="partner-cta">{% ui "partners_visit" %} ↗</span>
+    </div>
+  </a>
+</article>

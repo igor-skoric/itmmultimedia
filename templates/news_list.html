@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load website_tags %}
+
+{% block title %}{% ui "news_title" %} — ITM Multimedia{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <div class="section !py-0">
+    <p class="eyebrow">{% ui "news_eyebrow" %}</p>
+    <h1 class="section-title">{% ui "news_title" %}</h1>
+    <p class="section-lead max-w-2xl">{% ui "news_lead" %}</p>
+  </div>
+</section>
+
+<section class="section !pt-2" id="listing">
+  <div class="list-toolbar">
+    {% include "includes/search_form.html" with placeholder_key="search_news" %}
+  </div>
+
+  <div class="news-grid">
+    {% if featured %}
+      <article class="news-feature reveal">
+        <a href="{% url 'news_detail' featured.slug %}">
+          <img src="{{ featured.image_url }}" alt="{% loc featured 'title' lang %}" />
+        </a>
+        <div>
+          <div class="news-meta">{{ featured.published_at|date:"j. F Y." }}</div>
+          <h2>
+            <a href="{% url 'news_detail' featured.slug %}">{% loc featured "title" lang %}</a>
+          </h2>
+          <p class="news-excerpt">{% loc featured "excerpt" lang %}</p>
+          <a class="btn btn-ghost mt-4" href="{% url 'news_detail' featured.slug %}">{% ui "news_read" %}</a>
+        </div>
+      </article>
+    {% endif %}
+
+    <div class="grid gap-8">
+      {% for article in articles %}
+        <article class="news-item reveal">
+          <a href="{% url 'news_detail' article.slug %}">
+            <img src="{{ article.image_url }}" alt="{% loc article 'title' lang %}" />
+          </a>
+          <div>
+            <div class="news-meta">{{ article.published_at|date:"j. F Y." }}</div>
+            <h3>
+              <a href="{% url 'news_detail' article.slug %}">{% loc article "title" lang %}</a>
+            </h3>
+            <p class="news-excerpt">{% loc article "excerpt" lang %}</p>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+
+    {% if not featured and not articles %}
+      <div class="empty-state" style="grid-column: 1 / -1">{% if query %}{% ui "search_empty" %}{% else %}{% ui "news_empty" %}{% endif %}</div>
+    {% endif %}
+  </div>
+
+  {% include "includes/pagination.html" %}
+</section>
+{% endblock %}

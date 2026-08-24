@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.sqlite3
+db.sqlite3
+staticfiles/
+media/
+/festival-1/
+.env
+.venv/
+venv/
+_legacy_static/
+*.log
+.DS_Store

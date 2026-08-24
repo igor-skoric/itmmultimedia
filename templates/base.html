@@ -1,0 +1,145 @@
+{% load static website_tags %}
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}ITM Multimedia{% endblock %}</title>
+    <meta
+      name="description"
+      content="ITM Multimedia — video produkcija. Od ideje do kadra. Od kadra do priče."
+    />
+    <meta name="theme-color" content="#08090b" />
+    <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml" />
+    <link rel="icon" href="{% static 'img/favicon.png' %}" type="image/png" />
+    <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=20260824b" />
+    {% if request.resolver_match.url_name == "home" %}
+    <style>
+      html.is-booting { overflow: hidden; }
+      .boot {
+        position: fixed;
+        inset: 0;
+        z-index: 400;
+        display: grid;
+        place-items: center;
+        background: #08090b;
+      }
+    </style>
+    <script>
+      document.documentElement.classList.add("is-booting");
+    </script>
+    <noscript>
+      <style>
+        html.is-booting { overflow: auto !important; }
+        .boot { display: none !important; }
+      </style>
+    </noscript>
+    {% endif %}
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body class="{% block body_class %}{% endblock %}">
+    {% if request.resolver_match.url_name == "home" %}
+    <div class="boot" id="boot" role="status" aria-live="polite" aria-label="ITM Multimedia">
+      <div class="boot-stage">
+        <div class="boot-bars" aria-hidden="true"><i></i><i></i><i></i></div>
+        <p class="boot-brand">
+          <strong>ITM</strong>
+          <span>Multimedia</span>
+        </p>
+        <div class="boot-row">
+          <span class="boot-rec">REC</span>
+          <span class="boot-tc" data-boot-tc>00:00:00:00</span>
+        </div>
+        <div class="boot-line"><span></span></div>
+      </div>
+    </div>
+    {% endif %}
+    <div class="site-frame" aria-hidden="true"></div>
+    <div class="site-facets" aria-hidden="true">
+      <div class="site-facets-shift">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+    </div>
+    <div class="edit-fx" id="edit-fx" aria-hidden="true">
+      <div class="edit-fx-scale">
+        <span class="edit-fx-scale-ticks"></span>
+        <span class="edit-fx-scale-fill"></span>
+        <span class="edit-fx-playhead"></span>
+      </div>
+      <div class="edit-fx-tc"><span>TC</span><b data-edit-tc>00:00:00:00</b></div>
+    </div>
+    <header class="site-header" id="site-header">
+      <div class="header-inner">
+        <a href="{% url 'home' %}" class="brand-mark">
+          <img src="{% static 'img/logo.png' %}?v=2" alt="ITM Multimedia" />
+        </a>
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-controls="nav-panel" aria-expanded="false" aria-label="{% ui 'nav_open' %}">
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+    <nav class="nav-panel" id="nav-panel">
+      <a class="nav-link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}" href="{% url 'home' %}">{% ui "nav_home" %}</a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'videos' %}is-active{% endif %}" href="{% url 'videos' %}">{% ui "nav_video" %}</a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'gallery' %}is-active{% endif %}" href="{% url 'gallery' %}">{% ui "nav_gallery" %}</a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'news_list' or request.resolver_match.url_name == 'news_detail' %}is-active{% endif %}" href="{% url 'news_list' %}">{% ui "nav_news" %}</a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'partners' %}is-active{% endif %}" href="{% url 'partners' %}">{% ui "nav_partners" %}</a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}" href="{% url 'contact' %}">{% ui "nav_contact" %}</a>
+      <div class="lang-row">
+        {% for code in languages %}
+          <a
+            class="lang-btn {% if lang == code %}is-active{% endif %}"
+            href="{% url 'set_language' %}?lang={{ code }}&next={{ request.get_full_path|urlencode }}"
+          >{{ code|upper }}</a>
+        {% endfor %}
+      </div>
+    </nav>
+
+    <main>{% block content %}{% endblock %}</main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <a href="{% url 'home' %}" class="footer-brand">
+            <img src="{% static 'img/logo.png' %}?v=2" alt="ITM Multimedia" />
+          </a>
+          <p class="footer-copy">{% ui "footer_tagline" %}</p>
+        </div>
+        <div class="footer-col">
+          <h4>{% ui "footer_explore" %}</h4>
+          <a href="{% url 'videos' %}">{% ui "nav_video" %}</a>
+          <a href="{% url 'gallery' %}">{% ui "nav_gallery" %}</a>
+          <a href="{% url 'news_list' %}">{% ui "nav_news" %}</a>
+          <a href="{% url 'partners' %}">{% ui "nav_partners" %}</a>
+          <a href="{% url 'contact' %}">{% ui "nav_contact" %}</a>
+        </div>
+        <div class="footer-col" id="footer-contact">
+          <h4>{% ui "footer_contact" %}</h4>
+          <a href="{% url 'contact' %}">{% ui "nav_contact" %}</a>
+          <a href="mailto:office@itmmultimedia.rs">office@itmmultimedia.rs</a>
+          <p>+381 11 000 0000</p>
+          <p>Beograd, Srbija</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© {% now "Y" %} ITM Multimedia. {% ui "footer_rights" %}</span>
+        <p class="footer-credit">
+          {% ui "footer_credit" %}
+          <a href="https://itbranch.rs/" target="_blank" rel="noopener noreferrer">IT Branch</a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="{% static 'js/app.js' %}?v=20260820s"></script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

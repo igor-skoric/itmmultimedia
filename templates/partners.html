@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load website_tags %}
+
+{% block title %}{% ui "partners_title" %} — ITM Multimedia{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <div class="section !py-0">
+    <p class="eyebrow">{% ui "partners_eyebrow" %}</p>
+    <h1 class="section-title">{% ui "partners_title" %}</h1>
+    <p class="section-lead max-w-2xl">{% ui "partners_lead" %}</p>
+  </div>
+</section>
+
+<section class="section !pt-2" id="listing">
+  <div class="list-toolbar">
+    {% include "includes/search_form.html" with placeholder_key="search_partners" %}
+  </div>
+
+  <div class="partners-grid">
+    {% for partner in partners %}
+      {% include "includes/partner_card.html" with featured=forloop.first %}
+    {% empty %}
+      <div class="empty-state" style="grid-column: 1 / -1">{% if query %}{% ui "search_empty" %}{% else %}{% ui "partners_empty" %}{% endif %}</div>
+    {% endfor %}
+  </div>
+
+  {% include "includes/pagination.html" %}
+</section>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static website_tags %}
+
+{% block title %}{% ui "gallery_title" %} — ITM Multimedia{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <div class="section !py-0">
+    <p class="eyebrow">{% ui "gallery_eyebrow" %}</p>
+    <h1 class="section-title">{% ui "gallery_title" %}</h1>
+    <p class="section-lead max-w-2xl">{% ui "gallery_lead" %}</p>
+  </div>
+</section>
+
+<section class="section !pt-2" id="listing">
+  {% if categories|length > 1 %}
+  <div class="list-toolbar">
+    <div class="filter-bar">
+      <a class="chip {% if active_category == 'all' %}is-active{% endif %}" href="{% url 'gallery' %}{% qs category='' sub='' page='' %}">{% ui "gallery_all" %}</a>
+      {% for category in categories %}
+        <a
+          class="chip {% if active_category == category.slug %}is-active{% endif %}"
+          href="{% url 'gallery' %}{% qs category=category.slug sub='' page='' %}"
+        >{% loc category "name" lang %}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if current_category and current_category.subcategories.all|length > 1 %}
+    <div class="subfilter-bar">
+      <a
+        class="chip {% if active_sub == 'all' %}is-active{% endif %}"
+        href="{% url 'gallery' %}{% qs category=current_category.slug sub='' page='' %}"
+      >{% ui "gallery_all" %}</a>
+      {% for sub in current_category.subcategories.all %}
+        <a
+          class="chip {% if active_sub == sub.slug %}is-active{% endif %}"
+          href="{% url 'gallery' %}{% qs category=current_category.slug sub=sub.slug page='' %}"
+        >{% loc sub "name" lang %}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <p class="mb-4 text-sm uppercase tracking-[0.16em] text-[var(--muted)]">
+    {% ui "gallery_count" n=page_obj.paginator.count %}
+  </p>
+
+  <div class="gallery-grid" id="gallery-grid">
+    {% for image in images %}
+      <button
+        class="gallery-item reveal"
+        type="button"
+        data-full="{{ image.image_url }}"
+        data-caption="{% loc image 'title' lang %}"
+      >
+        <img src="{{ image.image_url }}" alt="{% loc image 'title' lang %}" loading="lazy" />
+        <span>{% loc image "title" lang %}</span>
+      </button>
+    {% empty %}
+      <div class="empty-state" style="grid-column: 1 / -1">{% ui "gallery_empty" %}</div>
+    {% endfor %}
+  </div>
+
+  {% include "includes/pagination.html" %}
+</section>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+  <div class="lightbox-inner">
+    <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Close">✕</button>
+    <button class="lightbox-nav lightbox-prev" id="lightbox-prev" type="button" aria-label="Previous">‹</button>
+    <img id="lightbox-image" src="" alt="" />
+    <button class="lightbox-nav lightbox-next" id="lightbox-next" type="button" aria-label="Next">›</button>
+    <p class="mt-3 text-center text-[var(--muted)]" id="lightbox-caption"></p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/gallery.js' %}?v=20260819"></script>
+{% endblock %}

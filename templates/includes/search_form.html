@@ -1,0 +1,19 @@
+{% load website_tags %}
+<form class="list-search" method="get" role="search">
+  {% if hidden_name and hidden_value and hidden_value != "all" %}
+    <input type="hidden" name="{{ hidden_name }}" value="{{ hidden_value }}" />
+  {% endif %}
+  <label class="visually-hidden" for="listing-q">{% ui placeholder_key %}</label>
+  <input
+    id="listing-q"
+    type="search"
+    name="q"
+    value="{{ query }}"
+    placeholder="{% ui placeholder_key %}"
+    autocomplete="off"
+  />
+  <button class="btn btn-ghost" type="submit">{% ui "search_submit" %}</button>
+  {% if query %}
+    <a class="list-search-clear" href="{% qs q='' page='' %}">{% ui "search_clear" %}</a>
+  {% endif %}
+</form>
