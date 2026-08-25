@@ -19,7 +19,7 @@
 
   <div class="partners-grid">
     {% for partner in partners %}
-      {% include "includes/partner_card.html" with featured=forloop.first %}
+      {% include "includes/partner_card.html" with index=forloop.counter %}
     {% empty %}
       <div class="empty-state" style="grid-column: 1 / -1">{% if query %}{% ui "search_empty" %}{% else %}{% ui "partners_empty" %}{% endif %}</div>
     {% endfor %}

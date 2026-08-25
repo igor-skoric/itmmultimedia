@@ -13,7 +13,7 @@
 </section>
 
 <section class="section !pt-2" id="listing">
-  {% if categories|length > 1 %}
+  {% if categories %}
   <div class="list-toolbar">
     <div class="filter-bar">
       <a class="chip {% if active_category == 'all' %}is-active{% endif %}" href="{% url 'gallery' %}{% qs category='' sub='' page='' %}">{% ui "gallery_all" %}</a>

@@ -79,13 +79,66 @@
       header?.classList.toggle("is-scrolled", on);
       document.documentElement.classList.toggle("is-scrolled", on);
     };
+    const camFab = document.getElementById("cam-fab");
+    const hero = document.querySelector(".hero");
+    const updateCamFab = () => {
+      if (!camFab) return;
+      const threshold = hero ? Math.max(hero.offsetHeight * 0.55, 380) : 240;
+      camFab.classList.toggle("is-on", window.scrollY > threshold && !camFab.classList.contains("is-rising"));
+    };
     const onScroll = () => {
       const y = window.scrollY;
       if (!compact && y > 36) setCompact(true);
       else if (compact && y < 10) setCompact(false);
+      updateCamFab();
     };
     setCompact(compact);
     window.addEventListener("scroll", onScroll, { passive: true });
+
+    const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    let camScrollRaf = 0;
+    const goToTop = (smooth) => {
+      if (camScrollRaf) cancelAnimationFrame(camScrollRaf);
+      const start = window.scrollY;
+      if (!smooth || start <= 1) {
+        window.scrollTo(0, 0);
+        return Promise.resolve();
+      }
+      const duration = Math.min(1600, Math.max(1000, start * 0.48));
+      const t0 = performance.now();
+      return new Promise((resolve) => {
+        const step = (now) => {
+          const t = Math.min(1, (now - t0) / duration);
+          window.scrollTo(0, Math.round(start * (1 - easeInOut(t))));
+          if (t < 1) camScrollRaf = requestAnimationFrame(step);
+          else {
+            camScrollRaf = 0;
+            window.scrollTo(0, 0);
+            resolve();
+          }
+        };
+        camScrollRaf = requestAnimationFrame(step);
+      });
+    };
+    camFab?.addEventListener("click", () => {
+      if (camFab.classList.contains("is-rising")) return;
+      if (reduceMotion) {
+        goToTop(false);
+        updateCamFab();
+        return;
+      }
+      const duration = Math.min(1600, Math.max(1000, window.scrollY * 0.48));
+      camFab.style.animationDuration = `${duration}ms`;
+      camFab.classList.add("is-rising");
+      camFab.classList.remove("is-on");
+      goToTop(true).then(() => {
+        camFab.classList.remove("is-rising");
+        camFab.style.animationDuration = "";
+        updateCamFab();
+      });
+    });
+    if (bootDone) updateCamFab();
+    else window.addEventListener("itm:ready", updateCamFab, { once: true });
 
     const setMenu = (open) => {
       panel?.classList.toggle("is-open", open);
@@ -126,6 +179,63 @@
       nodes.forEach((n) => io.observe(n));
     }
 
+    document.querySelectorAll(".partners-rail").forEach((rail) => {
+      const band = rail.closest(".partners-band") || rail.parentElement;
+      const indexEl = band?.querySelector("[data-partners-index] b");
+      const prev = band?.querySelector("[data-partners-prev]");
+      const next = band?.querySelector("[data-partners-next]");
+      const cards = [...rail.querySelectorAll(".partner-card")];
+
+      const stepSize = () => {
+        const card = cards[0];
+        if (!card) return rail.clientWidth;
+        const styles = window.getComputedStyle(rail);
+        const gap = parseFloat(styles.columnGap || styles.gap) || 0;
+        return card.getBoundingClientRect().width + gap;
+      };
+
+      const currentIndex = () => {
+        const step = stepSize();
+        if (!step) return 0;
+        return Math.min(cards.length - 1, Math.max(0, Math.round(rail.scrollLeft / step)));
+      };
+
+      const sync = () => {
+        const index = currentIndex();
+        if (indexEl) indexEl.textContent = String(index + 1).padStart(2, "0");
+        const maxLeft = Math.max(0, rail.scrollWidth - rail.clientWidth - 2);
+        if (prev) prev.disabled = rail.scrollLeft <= 2;
+        if (next) next.disabled = rail.scrollLeft >= maxLeft;
+      };
+
+      const go = (dir) => {
+        rail.scrollBy({
+          left: dir * stepSize(),
+          behavior: reduceMotion ? "auto" : "smooth",
+        });
+      };
+
+      prev?.addEventListener("click", () => go(-1));
+      next?.addEventListener("click", () => go(1));
+      rail.addEventListener("scroll", sync, { passive: true });
+      window.addEventListener("resize", sync);
+      sync();
+
+      rail.addEventListener(
+        "wheel",
+        (event) => {
+          if (rail.scrollWidth <= rail.clientWidth + 1) return;
+          if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+          const atStart = rail.scrollLeft <= 0;
+          const atEnd = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 1;
+          if ((event.deltaY < 0 && atStart) || (event.deltaY > 0 && atEnd)) return;
+          rail.scrollLeft += event.deltaY;
+          event.preventDefault();
+        },
+        { passive: false }
+      );
+    });
+
     document.querySelectorAll(".page-loop-video").forEach((video) => {
       if (reduceMotion) {
         video.remove();
@@ -139,6 +249,31 @@
       video.addEventListener("error", () => video.remove());
       video.play().catch(() => {});
     });
+
+    const heroVideo = document.querySelector(".hero-video");
+    const startHeroVideo = () => {
+      if (!heroVideo || reduceMotion) return;
+      const src = heroVideo.dataset.src;
+      if (src && heroVideo.src !== src) heroVideo.src = src;
+      const play = () => heroVideo.play().catch(() => {});
+      heroVideo.addEventListener("playing", () => heroVideo.classList.add("is-ready"), { once: true });
+      heroVideo.addEventListener("error", () => heroVideo.remove(), { once: true });
+      play();
+      if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) play();
+              else heroVideo.pause();
+            });
+          },
+          { threshold: 0.12 }
+        );
+        io.observe(heroVideo);
+      }
+    };
+    if (bootDone) startHeroVideo();
+    else window.addEventListener("itm:ready", startHeroVideo, { once: true });
 
     const startHero = () => {
       if (heroStarted) return;
@@ -193,7 +328,6 @@
     if (bootDone) startHero();
     else window.addEventListener("itm:ready", startHero, { once: true });
 
-    const hero = document.querySelector(".hero");
     const wave = document.getElementById("hero-wave");
     const glow = document.getElementById("hero-glow");
     if (hero && wave) {

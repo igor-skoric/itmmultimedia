@@ -24,8 +24,8 @@ from .models import (
 
 PAGE_SIZE_GALLERY = 24
 PAGE_SIZE_VIDEOS = 6
-PAGE_SIZE_NEWS = 2
-PAGE_SIZE_PARTNERS = 3
+PAGE_SIZE_NEWS = 6
+PAGE_SIZE_PARTNERS = 8
 
 
 def listing_query(request):
@@ -50,7 +50,7 @@ def text_search(queryset, query, *fields, year_field=None):
 def home(request):
     lang = get_language(request)
     partners = Partner.objects.filter(is_active=True)
-    featured_videos = list(Video.objects.filter(is_active=True)[:6])
+    featured_videos = list(Video.objects.filter(is_active=True)[:3])
     return render(
         request,
         "home.html",
@@ -144,12 +144,25 @@ def news_list(request):
 def news_detail(request, slug):
     lang = get_language(request)
     article = get_object_or_404(NewsArticle, slug=slug, is_published=True)
+    published = NewsArticle.objects.filter(is_published=True)
+    older = (
+        published.filter(published_at__lt=article.published_at)
+        .order_by("-published_at", "-id")
+        .first()
+    )
+    newer = (
+        published.filter(published_at__gt=article.published_at)
+        .order_by("published_at", "id")
+        .first()
+    )
     return render(
         request,
         "news_detail.html",
         {
             "article": article,
             "paragraphs": article.body_paragraphs(lang),
+            "older": older,
+            "newer": newer,
             "lang": lang,
         },
     )

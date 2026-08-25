@@ -42,9 +42,9 @@ class GalleryImageAdmin(admin.ModelAdmin):
 
 @admin.register(NewsArticle)
 class NewsArticleAdmin(admin.ModelAdmin):
-    list_display = ("title_sr", "published_at", "is_published")
-    list_filter = ("is_published",)
-    list_editable = ("is_published",)
+    list_display = ("title_sr", "kicker", "published_at", "is_published")
+    list_filter = ("kicker", "is_published")
+    list_editable = ("kicker", "is_published")
     prepopulated_fields = {"slug": ("title_sr",)}
     search_fields = ("title_sr", "title_en", "title_fr")
 

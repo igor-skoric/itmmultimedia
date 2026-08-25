@@ -1,22 +1,51 @@
 {% extends "base.html" %}
-{% load website_tags %}
+{% load static website_tags %}
 
 {% block title %}{% loc article "title" lang %} — ITM Multimedia{% endblock %}
 
 {% block content %}
-<section class="page-hero !pb-2">
-  <div class="section !py-0 article-layout">
-    <div>
-      <a class="nav-link inline-block mb-6" href="{% url 'news_list' %}">{% ui "news_back" %}</a>
-      <div class="news-meta mb-3">{{ article.published_at|date:"j. F Y." }}</div>
-      <h1 class="section-title mb-6">{% loc article "title" lang %}</h1>
-      <img class="article-cover mb-8" src="{{ article.image_url }}" alt="{% loc article 'title' lang %}" />
-      <div class="article-body">
-        {% for paragraph in paragraphs %}
-          <p>{{ paragraph }}</p>
-        {% endfor %}
-      </div>
+<article class="article-page">
+  <div class="section article-layout">
+    <a class="news-back" href="{% url 'news_list' %}">{% ui "news_back" %}</a>
+    <div class="news-card-meta">
+      {% if article.kicker %}
+        <span class="news-kicker">{% ui article.kicker_i18n_key %}</span>
+      {% endif %}
+      <time datetime="{{ article.published_at|date:'Y-m-d' }}">{{ article.published_at|date:"j. n. Y." }}</time>
     </div>
+    <h1 class="article-title">{% loc article "title" lang %}</h1>
+    <p class="article-lead">{% loc article "excerpt" lang %}</p>
+    <img
+      class="article-cover"
+      src="{{ article.image_url }}"
+      alt="{% loc article 'title' lang %}"
+      onerror="this.onerror=null;this.src='{% static 'img/shots/hero-camera.png' %}';"
+    />
+    <div class="article-body">
+      {% for paragraph in paragraphs %}
+        <p>{{ paragraph }}</p>
+      {% endfor %}
+    </div>
+    <div class="article-cta">
+      <a class="btn btn-ghost" href="{% url 'gallery' %}">{% ui "news_see_gallery" %}</a>
+      <a class="btn btn-ghost" href="{% url 'videos' %}">{% ui "news_see_projects" %}</a>
+    </div>
+    {% if newer or older %}
+      <nav class="article-more" aria-label="{% ui 'nav_news' %}">
+        {% if newer %}
+          <a href="{% url 'news_detail' newer.slug %}">
+            <span>{% ui "news_newer" %}</span>
+            {% loc newer "title" lang %}
+          </a>
+        {% endif %}
+        {% if older %}
+          <a href="{% url 'news_detail' older.slug %}">
+            <span>{% ui "news_older" %}</span>
+            {% loc older "title" lang %}
+          </a>
+        {% endif %}
+      </nav>
+    {% endif %}
   </div>
-</section>
+</article>
 {% endblock %}

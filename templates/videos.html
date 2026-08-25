@@ -35,7 +35,12 @@
           data-local="{{ video.local_src }}"
           data-title="{% loc video 'title' lang %}"
         >
-          <img src="{{ video.thumb_url }}" alt="{% loc video 'title' lang %}" loading="lazy" />
+          <img
+            src="{{ video.thumb_url }}"
+            alt="{% loc video 'title' lang %}"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='{% static 'img/shots/hero-camera.png' %}';"
+          />
           <span class="play-badge"><i></i></span>
         </button>
         <div>
@@ -66,5 +71,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/video.js' %}?v=20260819"></script>
+<script src="{% static 'js/video.js' %}?v=20260825a"></script>
 {% endblock %}

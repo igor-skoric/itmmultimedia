@@ -68,6 +68,13 @@ class GalleryImage(LocalizedModel):
 
 
 class NewsArticle(LocalizedModel):
+    class Kicker(models.TextChoices):
+        GALLERY = "gallery", "Galerija"
+        VIDEO = "video", "Video"
+        INTERVIEW = "interview", "Intervju"
+        FIELD = "field", "Teren"
+        IN_PROGRESS = "in_progress", "U radu"
+
     slug = models.SlugField(unique=True)
     title_sr = models.CharField(max_length=255)
     title_en = models.CharField(max_length=255, blank=True)
@@ -78,12 +85,15 @@ class NewsArticle(LocalizedModel):
     body_sr = models.TextField(help_text="Paragrafi odvojeni praznim redom.")
     body_en = models.TextField(blank=True)
     body_fr = models.TextField(blank=True)
+    kicker = models.CharField(max_length=20, choices=Kicker.choices, blank=True)
     image_url = models.URLField(max_length=500)
     published_at = models.DateField()
     is_published = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["-published_at", "-id"]
+        verbose_name = "aktuelnost"
+        verbose_name_plural = "aktuelnosti"
 
     def __str__(self):
         return self.title_sr
@@ -91,6 +101,10 @@ class NewsArticle(LocalizedModel):
     def body_paragraphs(self, lang: str):
         text = self.localized("body", lang)
         return [p.strip() for p in text.split("\n\n") if p.strip()]
+
+    @property
+    def kicker_i18n_key(self):
+        return f"news_kicker_{self.kicker}" if self.kicker else ""
 
 
 class Video(LocalizedModel):

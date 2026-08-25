@@ -6,8 +6,13 @@
 
     function close() {
       modal.classList.remove("is-open");
-      frame.innerHTML = "";
+      frame.replaceChildren();
       document.body.style.overflow = "";
+    }
+
+    function openModal() {
+      modal.classList.add("is-open");
+      document.body.style.overflow = "hidden";
     }
 
     document.querySelectorAll(".video-thumb").forEach((btn) => {
@@ -16,9 +21,24 @@
         const title = btn.dataset.title || "";
 
         if (source === "youtube") {
-          frame.innerHTML = `<iframe src="https://www.youtube.com/embed/${btn.dataset.youtube}?autoplay=1" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-          modal.classList.add("is-open");
-          document.body.style.overflow = "hidden";
+          const id = (btn.dataset.youtube || "").trim();
+          if (!id) return;
+          const iframe = document.createElement("iframe");
+          const params = new URLSearchParams({
+            autoplay: "1",
+            rel: "0",
+            modestbranding: "1",
+            playsinline: "1",
+            origin: window.location.origin,
+          });
+          iframe.src = "https://www.youtube-nocookie.com/embed/" + id + "?" + params.toString();
+          iframe.title = title;
+          iframe.allow =
+            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+          iframe.allowFullscreen = true;
+          iframe.referrerPolicy = "strict-origin-when-cross-origin";
+          frame.replaceChildren(iframe);
+          openModal();
           return;
         }
 
@@ -28,9 +48,12 @@
         }
 
         if (source === "local") {
-          frame.innerHTML = `<video controls autoplay src="${btn.dataset.local}"></video>`;
-          modal.classList.add("is-open");
-          document.body.style.overflow = "hidden";
+          const video = document.createElement("video");
+          video.controls = true;
+          video.autoplay = true;
+          video.src = btn.dataset.local || "";
+          frame.replaceChildren(video);
+          openModal();
         }
       });
     });

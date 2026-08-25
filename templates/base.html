@@ -20,7 +20,7 @@
       rel="stylesheet"
     />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=20260824b" />
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=20260825c" />
     {% if request.resolver_match.url_name == "home" %}
     <style>
       html.is-booting { overflow: hidden; }
@@ -139,7 +139,25 @@
       </div>
     </footer>
 
-    <script src="{% static 'js/app.js' %}?v=20260820s"></script>
+    <button
+      class="cam-fab"
+      id="cam-fab"
+      type="button"
+      aria-label="{% ui 'cam_home' %}"
+    >
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M16 13h14v4H16z" fill="currentColor" opacity="0.55" />
+        <path d="M18 9.5h10v5H18z" fill="none" stroke="currentColor" stroke-width="2.2" />
+        <rect x="7" y="17" width="24" height="18" rx="4" fill="currentColor" />
+        <rect x="10" y="20.5" width="6.5" height="5" rx="1" fill="#08090b" />
+        <circle cx="34.5" cy="26" r="9.2" fill="#121317" stroke="currentColor" stroke-width="2.2" />
+        <circle cx="34.5" cy="26" r="6.2" fill="none" stroke="#fa5817" stroke-width="1.6" />
+        <circle cx="34.5" cy="26" r="2.35" fill="#fa5817" />
+        <circle class="cam-fab-rec" cx="12.2" cy="21.8" r="1.55" fill="#fa5817" />
+      </svg>
+    </button>
+
+    <script src="{% static 'js/app.js' %}?v=20260824l"></script>
     {% block extra_js %}{% endblock %}
   </body>
 </html>

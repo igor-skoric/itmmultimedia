@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load website_tags %}
+{% load static website_tags %}
 
 {% block title %}{% ui "news_title" %} — ITM Multimedia{% endblock %}
 
@@ -17,44 +17,64 @@
     {% include "includes/search_form.html" with placeholder_key="search_news" %}
   </div>
 
-  <div class="news-grid">
-    {% if featured %}
-      <article class="news-feature reveal">
-        <a href="{% url 'news_detail' featured.slug %}">
-          <img src="{{ featured.image_url }}" alt="{% loc featured 'title' lang %}" />
-        </a>
-        <div>
-          <div class="news-meta">{{ featured.published_at|date:"j. F Y." }}</div>
-          <h2>
-            <a href="{% url 'news_detail' featured.slug %}">{% loc featured "title" lang %}</a>
-          </h2>
-          <p class="news-excerpt">{% loc featured "excerpt" lang %}</p>
-          <a class="btn btn-ghost mt-4" href="{% url 'news_detail' featured.slug %}">{% ui "news_read" %}</a>
+  {% if featured %}
+    <article class="news-hero reveal">
+      <a class="news-hero-media" href="{% url 'news_detail' featured.slug %}">
+        <img
+          src="{{ featured.image_url }}"
+          alt="{% loc featured 'title' lang %}"
+          onerror="this.onerror=null;this.src='{% static 'img/shots/hero-camera.png' %}';"
+        />
+      </a>
+      <div class="news-hero-copy">
+        <div class="news-card-meta">
+          {% if featured.kicker %}
+            <span class="news-kicker">{% ui featured.kicker_i18n_key %}</span>
+          {% endif %}
+          <time datetime="{{ featured.published_at|date:'Y-m-d' }}">{{ featured.published_at|date:"j. n. Y." }}</time>
         </div>
-      </article>
-    {% endif %}
+        <h2>
+          <a href="{% url 'news_detail' featured.slug %}">{% loc featured "title" lang %}</a>
+        </h2>
+        <p class="news-excerpt">{% loc featured "excerpt" lang %}</p>
+        <a class="btn btn-primary" href="{% url 'news_detail' featured.slug %}">{% ui "news_read" %}</a>
+      </div>
+    </article>
+  {% endif %}
 
-    <div class="grid gap-8">
+  {% if articles %}
+    <div class="news-feed">
       {% for article in articles %}
-        <article class="news-item reveal">
-          <a href="{% url 'news_detail' article.slug %}">
-            <img src="{{ article.image_url }}" alt="{% loc article 'title' lang %}" />
+        <article class="news-card reveal">
+          <a class="news-card-media" href="{% url 'news_detail' article.slug %}">
+            <img
+              src="{{ article.image_url }}"
+              alt="{% loc article 'title' lang %}"
+              loading="lazy"
+              onerror="this.onerror=null;this.src='{% static 'img/shots/hero-camera.png' %}';"
+            />
           </a>
-          <div>
-            <div class="news-meta">{{ article.published_at|date:"j. F Y." }}</div>
+          <div class="news-card-copy">
+            <div class="news-card-meta">
+              {% if article.kicker %}
+                <span class="news-kicker">{% ui article.kicker_i18n_key %}</span>
+              {% endif %}
+              <time datetime="{{ article.published_at|date:'Y-m-d' }}">{{ article.published_at|date:"j. n. Y." }}</time>
+            </div>
             <h3>
               <a href="{% url 'news_detail' article.slug %}">{% loc article "title" lang %}</a>
             </h3>
             <p class="news-excerpt">{% loc article "excerpt" lang %}</p>
+            <a class="text-link" href="{% url 'news_detail' article.slug %}">{% ui "news_read" %} →</a>
           </div>
         </article>
       {% endfor %}
     </div>
+  {% endif %}
 
-    {% if not featured and not articles %}
-      <div class="empty-state" style="grid-column: 1 / -1">{% if query %}{% ui "search_empty" %}{% else %}{% ui "news_empty" %}{% endif %}</div>
-    {% endif %}
-  </div>
+  {% if not featured and not articles %}
+    <div class="empty-state">{% if query %}{% ui "search_empty" %}{% else %}{% ui "news_empty" %}{% endif %}</div>
+  {% endif %}
 
   {% include "includes/pagination.html" %}
 </section>

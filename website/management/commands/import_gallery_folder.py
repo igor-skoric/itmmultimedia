@@ -59,10 +59,14 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("source", help="Folder with original photos")
-        parser.add_argument("--category-slug", default="festival")
-        parser.add_argument("--category-name", default="Festival")
-        parser.add_argument("--sub-slug", default="festival-1")
-        parser.add_argument("--sub-name", default="Festival 1")
+        parser.add_argument("--category-slug", default="beograd-moto-fest")
+        parser.add_argument("--category-name", default="Beograd Moto Fest")
+        parser.add_argument("--category-name-en", default="Belgrade Moto Fest")
+        parser.add_argument("--category-name-fr", default="Belgrade Moto Fest")
+        parser.add_argument("--sub-slug", default="beograd-moto-fest")
+        parser.add_argument("--sub-name", default="Beograd Moto Fest")
+        parser.add_argument("--sub-name-en", default="Belgrade Moto Fest")
+        parser.add_argument("--sub-name-fr", default="Belgrade Moto Fest")
         parser.add_argument("--max-edge", type=int, default=1800)
         parser.add_argument("--quality", type=int, default=78)
         parser.add_argument("--order", type=int, default=0, help="Category order")
@@ -92,23 +96,23 @@ class Command(BaseCommand):
         for old in dest_dir.glob("*.webp"):
             old.unlink()
 
-        category, _ = GalleryCategory.objects.get_or_create(
+        category, _ = GalleryCategory.objects.update_or_create(
             slug=options["category_slug"],
             defaults={
                 "name_sr": options["category_name"],
-                "name_en": options["category_name"],
-                "name_fr": options["category_name"],
+                "name_en": options["category_name_en"] or options["category_name"],
+                "name_fr": options["category_name_fr"] or options["category_name"],
                 "order": options["order"],
                 "is_active": True,
             },
         )
-        subcategory, _ = GallerySubcategory.objects.get_or_create(
+        subcategory, _ = GallerySubcategory.objects.update_or_create(
             category=category,
             slug=options["sub_slug"],
             defaults={
                 "name_sr": options["sub_name"],
-                "name_en": options["sub_name"],
-                "name_fr": options["sub_name"],
+                "name_en": options["sub_name_en"] or options["sub_name"],
+                "name_fr": options["sub_name_fr"] or options["sub_name"],
                 "order": 1,
                 "is_active": True,
             },
