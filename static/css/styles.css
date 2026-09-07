@@ -3156,7 +3156,14 @@ html.is-scrolled .lang-btn {
   .contact-inner,
   .footer-inner,
   .footer-bottom {
-    width: min(1280px, calc(100% - 1.5rem));
+    width: min(1280px, calc(100% - 3.1rem));
+    margin-left: 2.05rem;
+    margin-right: 1.05rem;
+  }
+
+  .contact-side {
+    padding-left: 2.05rem;
+    padding-right: 1.15rem;
   }
 
   .gallery-grid,
