@@ -1,0 +1,14 @@
+[Unit]
+Description=ITM Multimedia Django
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/itmmultimedia
+EnvironmentFile=/var/www/itmmultimedia/.env
+ExecStart=/var/www/itmmultimedia/.venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:8000 --workers 3
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

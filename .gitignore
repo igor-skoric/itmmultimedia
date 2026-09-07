@@ -5,6 +5,8 @@ db.sqlite3
 staticfiles/
 media/
 /festival-1/
+static/img/gallery/ostalo/*.jpg
+static/img/gallery/ostalo/*.jpeg
 .env
 .venv/
 venv/

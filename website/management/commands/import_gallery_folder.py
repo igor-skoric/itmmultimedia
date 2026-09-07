@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 from website.models import GalleryCategory, GalleryImage, GallerySubcategory
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".webp"}
+ORIGINAL_EXTS = {".jpg", ".jpeg", ".png", ".tif", ".tiff"}
 
 
 def slugify_stem(stem: str) -> str:
@@ -78,8 +79,10 @@ class Command(BaseCommand):
         if not source.is_dir():
             raise CommandError(f"Folder not found: {source}")
 
+        originals = [p for p in source.iterdir() if p.suffix.lower() in ORIGINAL_EXTS]
         files = sorted(
-            (p for p in source.iterdir() if p.suffix.lower() in IMAGE_EXTS),
+            originals
+            or (p for p in source.iterdir() if p.suffix.lower() in IMAGE_EXTS),
             key=source_sort_key,
         )
         if not files:

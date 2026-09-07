@@ -1,12 +1,50 @@
 from pathlib import Path
+import os
+
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = "django-insecure-7z)rv1v1$r(5ewv0#yc5q=g&kdh1&te+ja2+ptg%hjw+5+fg#s"
 
-DEBUG = True
+def env(name, default=None):
+    value = os.environ.get(name)
+    if value is None or value == "":
+        return default
+    return value
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
+def env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None or value == "":
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def env_list(name, default=None):
+    value = os.environ.get(name)
+    if not value:
+        return list(default or [])
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+SECRET_KEY = env("DJANGO_SECRET_KEY", "django-insecure-7z)rv1v1$r(5ewv0#yc5q=g&kdh1&te+ja2+ptg%hjw+5+fg#s")
+DEBUG = env_bool("DJANGO_DEBUG", True)
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", ["localhost", "127.0.0.1"])
+
+if not DEBUG:
+    if not SECRET_KEY or SECRET_KEY.startswith("django-insecure-"):
+        raise ValueError("Set DJANGO_SECRET_KEY in .env for production.")
+    if not ALLOWED_HOSTS:
+        raise ValueError("Set DJANGO_ALLOWED_HOSTS in .env for production.")
+
+CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS", [])
+if not CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{host}"
+        for host in ALLOWED_HOSTS
+        if host not in {"localhost", "127.0.0.1"}
+    ]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -20,6 +58,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -51,7 +90,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": env("DJANGO_SQLITE_PATH", str(BASE_DIR / "db.sqlite3")),
     }
 }
 
@@ -74,14 +113,48 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedStaticFilesStorage"
+        ),
+    },
+}
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(env("SECURE_HSTS_SECONDS", "0"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+    SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
 
 SITE_LANGUAGES = ("sr", "en", "fr")
 DEFAULT_SITE_LANGUAGE = "sr"
 SITE_LANGUAGE_COOKIE = "itm_lang"
 
-CONTACT_EMAIL = "office@itmmultimedia.rs"
-DEFAULT_FROM_EMAIL = "ITM Multimedia <noreply@itmmultimedia.rs>"
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+CONTACT_EMAIL = env("CONTACT_EMAIL", "office@itmmultimedia.rs")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "ITM Multimedia <noreply@itmmultimedia.rs>")
+
+if env("EMAIL_HOST"):
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = env("EMAIL_HOST")
+    EMAIL_PORT = int(env("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+else:
+    EMAIL_BACKEND = env(
+        "EMAIL_BACKEND",
+        "django.core.mail.backends.console.EmailBackend",
+    )

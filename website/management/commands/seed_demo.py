@@ -238,33 +238,20 @@ class Command(BaseCommand):
         GalleryCategory.objects.all().delete()
         Partner.objects.all().delete()
 
-        moto_fest = GalleryCategory.objects.create(
+        self.seed_gallery_album(
             slug="beograd-moto-fest",
             name_sr="Beograd Moto Fest",
             name_en="Belgrade Moto Fest",
             name_fr="Belgrade Moto Fest",
             order=0,
         )
-        moto_fest_album = GallerySubcategory.objects.create(
-            category=moto_fest,
-            slug="beograd-moto-fest",
-            name_sr="Beograd Moto Fest",
-            name_en="Belgrade Moto Fest",
-            name_fr="Belgrade Moto Fest",
+        self.seed_gallery_album(
+            slug="ostalo",
+            name_sr="Ostalo",
+            name_en="Other",
+            name_fr="Autre",
             order=1,
         )
-        gallery_dir = settings.BASE_DIR / "static" / "img" / "gallery" / "beograd-moto-fest"
-        if gallery_dir.is_dir():
-            for i, path in enumerate(sorted(gallery_dir.glob("*.webp")), start=1):
-                title = f"Beograd Moto Fest — {path.stem.split('-', 1)[-1]}"
-                GalleryImage.objects.create(
-                    subcategory=moto_fest_album,
-                    title_sr=title,
-                    title_en=title,
-                    title_fr=title,
-                    image_url=f"/static/img/gallery/beograd-moto-fest/{path.name}",
-                    order=i,
-                )
 
         self.seed_news()
         self.seed_videos()
@@ -326,3 +313,36 @@ class Command(BaseCommand):
         for data in NEWS:
             NewsArticle.objects.create(**data)
         self.stdout.write(f"Seeded {len(NEWS)} news articles.")
+
+    def seed_gallery_album(self, slug, name_sr, name_en, name_fr, order):
+        category = GalleryCategory.objects.create(
+            slug=slug,
+            name_sr=name_sr,
+            name_en=name_en,
+            name_fr=name_fr,
+            order=order,
+        )
+        album = GallerySubcategory.objects.create(
+            category=category,
+            slug=slug,
+            name_sr=name_sr,
+            name_en=name_en,
+            name_fr=name_fr,
+            order=1,
+        )
+        gallery_dir = settings.BASE_DIR / "static" / "img" / "gallery" / slug
+        if not gallery_dir.is_dir():
+            return
+        count = 0
+        for i, path in enumerate(sorted(gallery_dir.glob("*.webp")), start=1):
+            title = f"{name_sr} — {path.stem.split('-', 1)[-1]}"
+            GalleryImage.objects.create(
+                subcategory=album,
+                title_sr=title,
+                title_en=title,
+                title_fr=title,
+                image_url=f"/static/img/gallery/{slug}/{path.name}",
+                order=i,
+            )
+            count += 1
+        self.stdout.write(f"Seeded {count} photos into {name_sr}.")
