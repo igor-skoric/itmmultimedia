@@ -1,10 +1,30 @@
 from pathlib import Path
 import os
 
-from dotenv import load_dotenv
-
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
+
+
+def load_env_file(path):
+    if not path.is_file():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key or key in os.environ:
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1]
+        os.environ[key] = value
+
+
+for env_path in (BASE_DIR / ".env", Path.cwd() / ".env"):
+    load_env_file(env_path)
+    if env_path.is_file():
+        break
 
 
 def env(name, default=None):
@@ -30,7 +50,10 @@ def env_list(name, default=None):
 
 SECRET_KEY = env("DJANGO_SECRET_KEY", "django-insecure-7z)rv1v1$r(5ewv0#yc5q=g&kdh1&te+ja2+ptg%hjw+5+fg#s")
 DEBUG = env_bool("DJANGO_DEBUG", True)
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", ["localhost", "127.0.0.1"])
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS") or env_list(
+    "ALLOWED_HOSTS",
+    ["localhost", "127.0.0.1"],
+)
 
 if not DEBUG:
     if not SECRET_KEY or SECRET_KEY.startswith("django-insecure-"):
@@ -38,7 +61,7 @@ if not DEBUG:
     if not ALLOWED_HOSTS:
         raise ValueError("Set DJANGO_ALLOWED_HOSTS in .env for production.")
 
-CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS", [])
+CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
 if not CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS = [
         f"https://{host}"
@@ -56,9 +79,19 @@ INSTALLED_APPS = [
     "website",
 ]
 
+try:
+    import whitenoise  # noqa: F401
+except ImportError:
+    WHITENOISE_ENABLED = False
+else:
+    WHITENOISE_ENABLED = True
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+]
+if WHITENOISE_ENABLED:
+    MIDDLEWARE.append("whitenoise.middleware.WhiteNoiseMiddleware")
+MIDDLEWARE += [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -113,16 +146,17 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+if WHITENOISE_ENABLED and not DEBUG:
+    STATICFILES_STORAGE_BACKEND = "whitenoise.storage.CompressedStaticFilesStorage"
+else:
+    STATICFILES_STORAGE_BACKEND = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": (
-            "django.contrib.staticfiles.storage.StaticFilesStorage"
-            if DEBUG
-            else "whitenoise.storage.CompressedStaticFilesStorage"
-        ),
+        "BACKEND": STATICFILES_STORAGE_BACKEND,
     },
 }
 
